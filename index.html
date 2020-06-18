@@ -19,7 +19,7 @@
 
         <section>
           <h2>Java na Kubernetesie</h2>
-          <h3>problemy i rozwiązania na przykładzie Hbase/HDFS</h3>
+          <h3>problemy i rozwiązania na przykładzie HBase/HDFS</h3>
           Michał Sochoń
           
         </section>
@@ -69,7 +69,7 @@
         <section>
           <h2>HBase</h2>
 
-            masters + regionservers + zk
+            masters + region servers + zk
             <br/>
             <img src="images/HBase_architecture.svg">
 
@@ -103,7 +103,7 @@
           <ul>
             <li>Helm charty</li>
             <li>sidecar</li>
-            <li>Statefulsety i preStop</li>
+            <li>StatefulSety i preStop</li>
             <li>PVC i StorageClass</li>
             <li>serwisy po ClusterIP oraz Headless Service</li>
           </ul>
@@ -172,7 +172,7 @@
           <h2>Java + DNS cz. II</h2>
 
           <pre><code data-trim data-noescape>
-
+            #!/usr/bin/env bash
             wait_for_fqdn() { # $1 is DNS entry to test
               count=0
               while :
@@ -195,6 +195,7 @@
           <h2>StatefulSet cz. 1</h2>
 
           Speedup:
+
           <pre><code data-trim data-noescape data-line-numbers="8">
             apiVersion: apps/v1
             kind: StatefulSet
@@ -219,6 +220,7 @@
           <h2>StatefulSet cz. 2</h2>
 
           preStop + termination grace period
+          
           <pre><code data-trim data-noescape data-line-numbers="2|7-11|13-19">
 # ...
 terminationGracePeriodSeconds: 300
@@ -275,8 +277,8 @@ containers:
             <li>rozbicie na bardziej niezalezne uslugi</li>
             <li><a href="https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/RackAwareness.html">Hadoop rack awareness</a></li>
             <li>scale-in i wyrejestrowanie DN</li>
-            <li>troche dokladniejsze metyrki dla DN</li>
-            <li>zbieranie logów z uzyciem sidecar'a</li>
+            <li>trochę dokładniejsze metryki dla DN</li>
+            <li>zbieranie logów z użyciem sidecar'a</li>
           </ul>
         </section>
 
