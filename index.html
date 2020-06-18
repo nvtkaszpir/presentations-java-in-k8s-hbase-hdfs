@@ -112,7 +112,7 @@
 
         <section>
           <h2>Konteneryzacja</h2>
-          <!-- TODO: rozbic na mniejsze czesci, kawalki kodu, jesli sie da -->
+
           <ul>
             <li><a href="https://logging.apache.org/log4j/2.x/manual/cloud.html">Using Log4j in Cloud Enabled Applications</a></li>
             <li><a href="https://github.com/prometheus/jmx_exporter">prometheus/jmx_exporter</a></li>
@@ -129,19 +129,18 @@
           <h2>Java + DNS cz. 1</h2>
 
           /usr/local/openjdk-8/lib/security/java.security
-          <!-- TODO dziwny formattting komentarzy dziala jak trzeba -->
-          <pre><code data-trim data-noescape>
-              #
-            # networkaddress.cache.ttl=-1
-              networkaddress.cache.negative.ttl=10
-              #
-            </code></pre>
+          <pre><code data-trim data-noescape >
+..
+#networkaddress.cache.ttl=-1
+networkaddress.cache.negative.ttl=10
+..
+          </code></pre>
           Fix:
-          <pre><code data-trim data-noescape>
-              #
-              networkaddress.cache.ttl=30
-              networkaddress.cache.negative.ttl=10
-              #
+          <pre><code data-trim data-noescape >
+..
+networkaddress.cache.ttl=30
+networkaddress.cache.negative.ttl=10
+..
           </code></pre>
         </section>
 
@@ -150,7 +149,7 @@
           <h2>Headless Service</h2>
 
           Fix:
-          <pre><code data-trim data-noescape data-line-numbers="12">
+          <pre><code data-trim data-noescape data-line-numbers="12" class="yaml">
             apiVersion: v1
             kind: Service
             metadata:
@@ -171,8 +170,7 @@
         <section>
           <h2>Java + DNS cz. II</h2>
 
-          <pre><code data-trim data-noescape>
-            #!/usr/bin/env bash
+          <pre><code data-trim data-noescape class="bash">
             wait_for_fqdn() { # $1 is DNS entry to test
               count=0
               while :
@@ -196,7 +194,7 @@
 
           Speedup:
 
-          <pre><code data-trim data-noescape data-line-numbers="8">
+          <pre><code data-trim data-noescape data-line-numbers="8" class="yaml">
             apiVersion: apps/v1
             kind: StatefulSet
             metadata:
@@ -221,7 +219,7 @@
 
           preStop + termination grace period
           
-          <pre><code data-trim data-noescape data-line-numbers="2|7-11|13-19">
+          <pre><code data-trim data-noescape data-line-numbers="2|7-11|13-19" class="yaml">
 # ...
 terminationGracePeriodSeconds: 300
 containers:
@@ -248,10 +246,14 @@ containers:
         <section>
           <h2>Java w kontenerze</h2>
 
-          <pre><code data-trim data-noescape>
-          -XX:+UnlockExperimentalVMOptions
-          -XX:+UseCGroupMemoryLimitForHeap
-          -Xmx ...
+          <pre><code data-trim data-noescape >
+...
+
+-XX:+UnlockExperimentalVMOptions
+-XX:+UseCGroupMemoryLimitForHeap
+
+-Xmx ...
+...
           </code></pre>
           <br/>
           <a href="https://blogs.oracle.com/java-platform-group/java-se-support-for-docker-cpu-and-memory-limits">Java SE for Docker...</a>
@@ -272,7 +274,6 @@ containers:
         <section>
           <h2>Co dalej</h2>
 
-         <!-- TODO: URLS -->
           <ul>
             <li>rozbicie na bardziej niezalezne uslugi</li>
             <li><a href="https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/RackAwareness.html">Hadoop rack awareness</a></li>
