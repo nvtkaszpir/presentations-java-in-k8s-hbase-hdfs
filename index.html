@@ -1,40 +1,303 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+    <title>reveal.js</title>
 
-		<link rel="stylesheet" href="dist/reset.css">
-		<link rel="stylesheet" href="dist/reveal.css">
-		<link rel="stylesheet" href="dist/theme/black.css" id="theme">
+    <link rel="stylesheet" href="dist/reset.css">
+    <link rel="stylesheet" href="dist/reveal.css">
+    <link rel="stylesheet" href="dist/theme/bright-blood.css" id="theme">
 
-		<!-- Theme used for syntax highlighted code -->
-		<link rel="stylesheet" href="plugin/highlight/monokai.css" id="highlight-theme">
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
-		</div>
+    <!-- Theme used for syntax highlighted code -->
+    <link rel="stylesheet" href="plugin/highlight/monokai.css" id="highlight-theme">
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
 
-		<script src="dist/reveal.js"></script>
-		<script src="plugin/notes/notes.js"></script>
-		<script src="plugin/markdown/markdown.js"></script>
-		<script src="plugin/highlight/highlight.js"></script>
-		<script>
-			// More info about initialization & config:
-			// - https://revealjs.com/initialization/
-			// - https://revealjs.com/config/
-			Reveal.initialize({
-				hash: true,
+        <section>
+          <h2>Java na Kubernetesie</h2>
+          <h3>problemy i rozwiązania na przykładzie Hbase/HDFS</h3>
+          Michał Sochoń
+          <br/>
+          <br/>
+          <a href="http://github.com/nvtkaszpir">github.com/nvtkaszpir</a>
+          <br/>
+          <a href="mailto:kaszpir@gmail.com">kaszpir@gmail.com</a>
+          
+        </section>
 
-				// Learn about plugins: https://revealjs.com/plugins/
-				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
-			});
-		</script>
-	</body>
+        <section>
+          <h2>Agenda</h2>
+          <ul>
+            <li>Cel</li>
+            <li>HBase + HDFS</li>
+            <li>Kubernetes</li>
+            <li>Konteneryzacjaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!!!</li>
+            <li>Co dalej</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Cel</h2>
+
+          Używamy OpenTSDB, który ma 2 backendy:
+          <ul>
+            <li>Google Bigtable</li>
+            <li>HBase (i Zookeeper)</li>
+          </ul>
+          <br/>
+          <br/>
+          <ul>
+            <li>bez 'managed service' z chmury</li>
+            <li>bez stawiania własnych wirtualek</li>
+            <li>unifikacja wdrożenia</li>
+          </ul>
+          <br/>
+          <br/>
+          Czyli wpakować HBase z backendem HDFS do Kubernetesa.
+        </section>
+
+        <section>
+          <h2>HBase</h2>
+
+            masters + regionservers + zk
+            <br/>
+            <img src="images/HBase_architecture.svg">
+
+        </section>
+
+        <section data-transition="slide-in fade-out">
+          <h2>HDFS</h2>
+
+            zk + jn + nn + dn
+            <br/>
+            <img src="images/HDFS_architecture.svg">
+
+        </section>
+
+        <section data-transition="fade-in fade-out">
+          <h2>HDFS + HBase</h2>
+
+            <img src="images/HBase_HDFS_architecture.svg">
+
+        </section>
+
+        <section data-transition="fade-in">
+
+            <img src="images/HBase_HDFS_architecture_actually_more_like_this.svg">
+
+        </section>
+
+        <section>
+          <h2>Kubernetes</h2>
+
+          <ul>
+            <li>Helm charty</li>
+            <li>sidecar</li>
+            <li>Statefulsety i preStop</li>
+            <li>PVC i StorageClass</li>
+            <li>serwisy po ClusterIP oraz Headless Service</li>
+          </ul>
+      
+        </section>
+
+        <section>
+          <h2>Konteneryzacja</h2>
+          <!-- TODO: rozbic na mniejsze czesci, kawalki kodu, jesli sie da -->
+          <ul>
+            <li><a href="https://logging.apache.org/log4j/2.x/manual/cloud.html">Using Log4j in Cloud Enabled Applications</a></li>
+            <li><a href="https://github.com/prometheus/jmx_exporter">prometheus/jmx_exporter</a></li>
+            <li>wersje Javy per aplkacja + Ruby</li>
+            <li>readiness probes</li>
+            <li>headless service i delayed DNS registration</li>
+            <li>java DNS ttl</li>
+            <li>graceful stop</li>
+            <li>limits</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Java + DNS cz. 1</h2>
+
+          /usr/local/openjdk-8/lib/security/java.security
+          <!-- TODO dziwny formattting komentarzy dziala jak trzeba -->
+          <pre><code data-trim data-noescape>
+              #
+            # networkaddress.cache.ttl=-1
+              networkaddress.cache.negative.ttl=10
+              #
+            </code></pre>
+          Fix:
+          <pre><code data-trim data-noescape>
+              #
+              networkaddress.cache.ttl=30
+              networkaddress.cache.negative.ttl=10
+              #
+          </code></pre>
+        </section>
+
+
+        <section>
+          <h2>Headless Service</h2>
+
+          Fix:
+          <pre><code data-trim data-noescape data-line-numbers="12">
+            apiVersion: v1
+            kind: Service
+            metadata:
+              name: release-name-hdfs-journalnode
+              labels:
+                app.kubernetes.io/name: hdfs
+            spec:
+              ports:
+              - name: web
+                port: 8480
+              clusterIP: None
+              publishNotReadyAddresses: true
+              selector:
+                app.kubernetes.io/name: hdfs
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Java + DNS cz. II</h2>
+
+          <pre><code data-trim data-noescape>
+
+            wait_for_fqdn() { # $1 is DNS entry to test
+              count=0
+              while :
+              do
+                if nslookup $1 ; then
+                  echo "DNS registered ${1}"; break;
+                else
+                  echo "Waiting for DNS ${1}";  ((count=count+1)); sleep 3;
+                fi
+                if [ $count -gt 30 ]; then
+                  echo "Failed to get DNS for ${1}, tries: 30, aborting.";
+                  exit 1;
+                fi
+              done
+            }
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>StatefulSet cz. 1</h2>
+
+          Speedup:
+          <pre><code data-trim data-noescape data-line-numbers="8">
+            apiVersion: apps/v1
+            kind: StatefulSet
+            metadata:
+              name: release-name-hdfs-namenode
+              labels:
+                app.kubernetes.io/name: hdfs
+            spec:
+              podManagementPolicy: Parallel
+              selector:
+                matchLabels:
+                  app.kubernetes.io/name: hdfs
+                  app.kubernetes.io/component: namenode
+                  app.kubernetes.io/part-of: hdfs
+              serviceName: release-name-hdfs-namenode  
+              replicas: 3
+              template:
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>StatefulSet cz. 2</h2>
+
+          preStop + termination grace period
+          <pre><code data-trim data-noescape data-line-numbers="2|7-11|13-19">
+# ...
+terminationGracePeriodSeconds: 300
+containers:
+- name: datanode
+  image: "xxxxxxxxxxxxxxxxxxxxxxx"
+# ...
+  env:
+  - name: MY_POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+# ...
+  lifecycle:
+    preStop:
+      exec:
+        command:
+        - "/bin/bash"
+        - "-c"
+        - "hdfs dfsadmin -shutdownDatanode $MY_POD_IP:9867" 
+# ...
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Java w kontenerze</h2>
+
+          <pre><code data-trim data-noescape>
+          -XX:+UnlockExperimentalVMOptions
+          -XX:+UseCGroupMemoryLimitForHeap
+          -Xmx ...
+          </code></pre>
+          <br/>
+          <a href="https://blogs.oracle.com/java-platform-group/java-se-support-for-docker-cpu-and-memory-limits">Java SE for Docker...</a>
+
+
+        </section>
+
+
+        <section>
+          <h2>Limity zasobów</h2>
+
+          <ul>
+            <li>całe rdzenie</li>
+            <li>+Xmx - to zależy, do tego miejsce na zapis</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Co dalej</h2>
+
+         <!-- TODO: URLS -->
+          <ul>
+            <li>rozbicie na bardziej niezalezne uslugi</li>
+            <li><a href="https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/RackAwareness.html">Hadoop rack awareness</a></li>
+            <li>scale-in i wyrejestrowanie DN</li>
+            <li>troche dokladniejsze metyrki dla DN</li>
+            <li>zbieranie logów z uzyciem sidecar'a</li>
+          </ul>
+        </section>
+
+
+        <section data-background-image="images/dns.haiku.jpg" data-background-size="contain" data-background-repeat="norepeat">
+
+
+        </section>
+
+
+      </div>
+    </div>
+
+    <script src="dist/reveal.js"></script>
+    <script src="plugin/notes/notes.js"></script>
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+    <script>
+      // More info about initialization & config:
+      // - https://revealjs.com/initialization/
+      // - https://revealjs.com/config/
+      Reveal.initialize({
+        hash: true,
+        slideNumber: true,
+        // Learn about plugins: https://revealjs.com/plugins/
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
 </html>
